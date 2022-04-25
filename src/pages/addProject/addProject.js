@@ -1,0 +1,212 @@
+import { Form, Input, Button, DatePicker,Upload } from 'antd';
+import { UploadOutlined,MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import "../login/login.css"
+import axios from 'axios';
+import React,{useState} from 'react';
+import { useNavigate } from 'react-router-dom';
+
+const NormalLoginForm = () => {
+  const [projectImage, setProj] = useState({})
+  const navigate = useNavigate()
+  const user = JSON.parse(localStorage.getItem('user'))
+  const onFinish = async (values) => {
+    const faomdata = new FormData()
+    faomdata.append("projectImage", projectImage)
+    faomdata.append("projectName",values.projectName)
+    faomdata.append("description",values.description)
+    faomdata.append("startDate",values.startDate)
+    faomdata.append("githubLink",values.githubLink)
+    faomdata.append("liveUrl", values.liveUrl)
+    faomdata.append("techStack",values.techStack)
+  
+    console.log(faomdata)
+    console.log('Received values of form: ', values);
+    await axios({
+      method: 'post',
+      url: 'http://localhost:5000/addProject',
+      headers: {
+        authorization: user.token
+    },
+      data: faomdata
+    }).then((res) => {
+      console.log("success", res)
+      navigate("/myproject")
+  }).catch((err) => {
+    console.log(err)
+  }).then((res) => {
+      console.log("success",res)
+    }).catch((err) => {
+      console.log(err)
+    })
+  };
+
+  const normFile = (e) => {
+    console.log('Upload event:', e);
+      console.log('Upload event value:', e.target.value);
+  
+    if (Array.isArray(e)) {
+      return e;
+    }
+  
+    return e && e.fileList;
+  };
+  return (
+   
+    <div style={{margin:"10%",padding:"25px 0px"}}>
+      <h1 style={{padding:"15px"}} >Add New Project 
+      </h1>
+          <Form
+              encType='multipart/form-data'
+      name="normal_login"
+      className="login-form"
+      initialValues={{
+        remember: true,
+      }}
+      onFinish={onFinish}
+    >
+      <Form.Item
+        name="projectName"
+        rules={[
+          {
+            required: true,
+            message: 'Please input your projectName!',
+          },
+        ]}
+      >
+        <Input   placeholder="Project name" />
+              </Form.Item>
+              <Form.Item
+        name="description"
+        rules={[
+          {
+            required: true,
+            message: 'Please input your project description!',
+          },
+        ]}
+      >
+        <Input.TextArea placeholder="description" />
+              </Form.Item>
+              
+              <Form.Item
+        name="startDate"
+        rules={[
+          {
+            required: true,
+            message: 'Please input your project startDate!',
+          },
+        ]}
+              >
+                  <DatePicker placeholder="select startDate  " />
+        {/* <Input placeholder="startDate" />    */}
+              </Form.Item>
+              
+              <Form.Item
+        name="githubLink"
+        rules={[
+          {
+            required: true,
+            message: 'Please input your project githubLink!',
+          },
+        ]}
+      >
+        <Input placeholder="githubLink" />
+              </Form.Item>
+              <Form.Item
+        name="liveUrl"
+        rules={[
+          {
+            required: true,
+            message: 'Please input your project liveUrl!',
+          },
+        ]}
+      >
+        <Input placeholder="liveUrl" />
+              </Form.Item>
+   
+              {/*  */}
+              
+              <Form.List
+        name="techStack"
+        rules={[
+          {
+            validator: async (_, names) => {
+              if (!names || names.length < 2) {
+                return Promise.reject(new Error('At least 2 tech '));
+              }
+            },
+          },
+        ]}
+      >
+        {(fields, { add, remove }, { errors }) => (
+          <>
+            {fields.map((field, index) => (
+              <Form.Item
+                // {...(index === 0 ? formItemLayout : formItemLayoutWithOutLabel)}
+                label={index === 0 ? 'techs' : 'techs'}
+                required={false}
+                key={field.key}
+              >
+                <Form.Item
+                  {...field}
+                  validateTrigger={['onChange', 'onBlur']}
+                  rules={[
+                    {
+                      required: true,
+                      whitespace: true,
+                      message: "Please input tech name or delete this field.",
+                    },
+                  ]}
+                  noStyle
+                >
+                  <Input placeholder="tech stack name" style={{ width: '60%' }} />
+                </Form.Item>
+                {fields.length > 1 ? (
+                  <MinusCircleOutlined
+                    className="dynamic-delete-button"
+                    onClick={() => remove(field.name)}
+                  />
+                ) : null}
+              </Form.Item>
+            ))}
+            <Form.Item>
+              <Button
+                type="dashed"
+                onClick={() => add()}
+                style={{ width: '60%' }}
+                icon={<PlusOutlined />}
+              >
+                Add techStack
+              </Button>
+             
+              <Form.ErrorList errors={errors} />
+            </Form.Item>
+          </>
+        )}
+        </Form.List>
+        <label>AddProject Image</label>
+                <input type="file" name="projectImage" onChange={e=>setProj(e.target.files[0])} />
+                {/* <Form.Item
+        name="projectImage"
+        label="Upload"
+        valuePropName="fileList"
+        getValueFromEvent={normFile}
+        extra="longgggggggggggggggggggggggggggggggggg"
+      >
+        <Upload  listType="picture">
+          <Button icon={<UploadOutlined />}>Click to upload</Button>
+        </Upload>
+      </Form.Item> */}
+              {/*  */}
+      <Form.Item>
+        <Button type="primary" htmlType="submit" className="login-form-button">
+          add project imagePath techStack
+          </Button>
+          {/* <span> </span>
+        Or <a href=""> register now!</a> */}
+      </Form.Item>
+      </Form>
+      </div>
+  );
+};
+
+export default () => <NormalLoginForm />;
